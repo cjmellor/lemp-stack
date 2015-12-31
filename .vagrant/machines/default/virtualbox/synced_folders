@@ -1,1 +1,0 @@
-{"virtualbox":{"/home/vagrant/lemp_stack":{"guestpath":"/home/vagrant/lemp_stack","hostpath":"/Users/Chris/Sites/LEMP Stack","disabled":false,"__vagrantfile":true},"/vagrant":{"guestpath":"/vagrant","hostpath":"/Users/Chris/Documents/Vagrant/LEMP Stack","disabled":false,"__vagrantfile":true}}}
