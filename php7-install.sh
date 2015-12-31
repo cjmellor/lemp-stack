@@ -4,17 +4,14 @@
 
 # Dependencies
 apt-get update
+apt-get build-dep php5
 apt-get install -qqy \
     autoconf \
     bison \
-    libxml2-dev \
-    libbz2-dev \
-    libmcrypt-dev \
-    libcurl4-openssl-dev \
-    libltdl-dev \
-    libpng-dev \
-    libpspell-dev \
-    libreadline-dev
+    automake \
+    libtool \
+    pkg-config \
+    build-essential
 
 mkdir -p /usr/local/src/php7-build/php7
 
@@ -35,43 +32,46 @@ mkdir -p /etc/php/php7/fpm/conf.d
 
 ./buildconf --force
 
-CONFIGURE_STRING="--prefix=/etc/php/php7 \
-                  --enable-bcmath \
-                  --with-bz2 \
-                  --enable-calendar \
-                  --enable-exif \
-                  --enable-dba \
-                  --enable-ftp \
-                  --with-gettext \
-                  --with-gd \
-                  --enable-mbstring \
-                  --with-mcrypt \
-                  --with-mhash \
-                  --enable-mysqlnd \
-                  --with-mysqli \
-                  --with-pdo-mysql \
-                  --with-openssl \
-                  --enable-pcntl \
-                  --with-pspell \
-                  --enable-shmop \
-                  --enable-soap \
-                  --enable-sockets \
-                  --enable-sysvmsg \
-                  --enable-sysvsem \
-                  --enable-sysvshm \
-                  --enable-wddx \
-                  --with-zlib \
-                  --enable-zip \
-                  --with-readline \
-                  --with-curl \
-                  --enable-fpm \
-                  --with-fpm-user=vagrant \
-                  --with-fpm-group=vagrant"
+CONFIGURE_STRING="
+                --prefix=/etc/php/php7 \
+                --with-bz2 \
+                --with-curl \
+                --with-fpm-group=vagrant \
+                --with-fpm-user=vagrant \
+                --with-gettext \
+                --with-gd \
+                --with-iconv \
+                --with-mcrypt \
+                --with-mhash \
+                --with-mysqli \
+                --with-pdo-mysql \
+                --with-openssl \
+                --with-pspell \
+                --with-readline \
+                --with-zlib \
+                --enable-bcmath \
+                --enable-calendar \
+                --enable-dba \
+                --enable-exif \
+                --enable-fpm
+                --enable-ftp \
+                --enable-mbstring \
+                --enable-mysqlnd \
+                --enable-pcntl \
+                --enable-shmop \
+                --enable-soap \
+                --enable-sockets \
+                --enable-sysvmsg \
+                --enable-sysvsem \
+                --enable-sysvshm \
+                --enable-wddx \
+                --enable-zip \
+"
 
 ./configure $CONFIGURE_STRING
 
-make
-make install
+make --quiet
+make install --quiet
 
 # Move configuration files to new location
 cp /usr/local/src/php7-build/php7/php-src/php.ini-production /etc/php/php7/lib/php.ini
