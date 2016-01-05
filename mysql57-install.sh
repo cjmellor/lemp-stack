@@ -29,7 +29,7 @@ apt-get install -qqy mysql-server
 
 # Automatic way to run 'mysql_secure_installation'
 mysql -u root <<-EOF
-    UPDATE mysql.user SET Password=PASSWORD('test1234') WHERE User='root';
+    UPDATE mysql.user SET Authentication_string=PASSWORD('test1234') WHERE User='root';
     DELETE FROM mysql.user WHERE User='';
     DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
     DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%';
