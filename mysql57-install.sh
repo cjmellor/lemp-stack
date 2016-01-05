@@ -20,10 +20,10 @@ EOF
 apt-get update -qq
 
 # Install MySQL without interaction
-export DEBIAN_FRONTEND="noninteractive"
+export DEBIAN_FRONTEND=noninteractive
 
-debconf-set-selections <<< "mysql-server mysql-server/root_password password test1234"
-debconf-set-selections <<< "mysql-server mysql-server/root_password_again password test1234"
+echo "mysql-server mysql-server/root_password password root" | debconf-set-selections
+echo "mysql-server mysql-server/root_password_again password root" | debconf-set-selections
 
 apt-get install -qqy mysql-server
 
