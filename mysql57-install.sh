@@ -1,15 +1,13 @@
 #!/bin/bash
 
-# mkdir -p /usr/local/src/mysql57-build
-# cd /usr/local/src/mysql57-build
+mkdir -p /usr/local/src/mysql57-build
+cd /usr/local/src/mysql57-build
 
-# # Download the MySQL pubkey
-# wget -q https://raw.githubusercontent.com/cjmellor/lemp-stack/master/mysql_pubkey.asc
-#
-# # Add the key
-# apt-key add mysql_pubkey.asc
+# Download the MySQL pubkey
+wget -q https://raw.githubusercontent.com/cjmellor/lemp-stack/master/mysql_pubkey.asc
 
-gpg --recv-keys 5072E1F5
+# Add the key
+apt-key add mysql_pubkey.asc
 
 # Add the MySQL repository
 touch /etc/apt/sources.list.d/mysql.list
