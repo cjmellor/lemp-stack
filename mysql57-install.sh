@@ -1,13 +1,16 @@
 #!/bin/bash
 
-mkdir -p /usr/local/src/mysql57-build
-cd /usr/local/src/mysql57-build
+# mkdir -p /usr/local/src/mysql57-build
+# cd /usr/local/src/mysql57-build
 
 # Download the MySQL pubkey
-wget -q https://raw.githubusercontent.com/cjmellor/lemp-stack/master/mysql_pubkey.asc
+# wget -q https://raw.githubusercontent.com/cjmellor/lemp-stack/master/mysql_pubkey.asc
 
 # Add the key
-apt-key add mysql_pubkey.asc
+# apt-key add mysql_pubkey.asc
+
+# Import MySQL public key
+gpg --keyserver hkp://keys.gnupg.net --recv-keys 5072E1F5
 
 # Add the MySQL repository
 touch /etc/apt/sources.list.d/mysql.list
@@ -17,7 +20,7 @@ cat << EOF > /etc/apt/sources.list.d/mysql.list
 deb http://repo.mysql.com/apt/ubuntu/ trusty mysql-5.7
 EOF
 
-apt-get update -qq
+apt-get update
 
 # Install MySQL without interaction
 export DEBIAN_FRONTEND=noninteractive
@@ -25,7 +28,7 @@ export DEBIAN_FRONTEND=noninteractive
 echo "mysql-server mysql-server/root_password password root" | debconf-set-selections
 echo "mysql-server mysql-server/root_password_again password root" | debconf-set-selections
 
-apt-get install -qqy mysql-server
+apt-get install -y mysql-server
 
 # Automatic way to run 'mysql_secure_installation'
 mysql -u root <<-EOF
