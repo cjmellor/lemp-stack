@@ -17,19 +17,21 @@ cat << EOF > /etc/apt/sources.list.d/mysql.list
 deb http://repo.mysql.com/apt/ubuntu/ trusty mysql-5.7
 EOF
 
-apt-get -qq update
+apt-get update -qq
 
 # Install MySQL without interaction
 export DEBIAN_FRONTEND="noninteractive"
 
-sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password test1234"
-sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password test1234"
+debconf-set-selections <<< "mysql-server mysql-server/root_password password test1234"
+debconf-set-selections <<< "mysql-server mysql-server/root_password_again password test1234"
 
 apt-get install -qqy mysql-server
 
 # Automatic way to run 'mysql_secure_installation'
-mysql -u root -p test1234 -e "
+mysql -u root <<-EOF
+    UPDATE mysql.user SET Password=PASSWORD('test1234') WHERE User='root';
     DELETE FROM mysql.user WHERE User='';
     DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
-    DROP DATABASE IF EXISTS test; FLUSH PRIVILEGES;
-"
+    DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%';
+    FLUSH PRIVILEGES;
+EOF
