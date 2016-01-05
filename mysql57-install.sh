@@ -14,7 +14,7 @@ touch /etc/apt/sources.list.d/mysql.list
 chown $(whoami): /etc/apt/sources.list.d/mysql.list
 
 cat << EOF > /etc/apt/sources.list.d/mysql.list
-    deb http://repo.mysql.com/apt/ trusty mysql-5.7
+deb http://repo.mysql.com/apt/ubuntu/ trusty mysql-5.7
 EOF
 
 apt-get -qq update
