@@ -1,16 +1,7 @@
 #!/bin/bash
 
-# mkdir -p /usr/local/src/mysql57-build
-# cd /usr/local/src/mysql57-build
-
-# Download the MySQL pubkey
-# wget -q https://raw.githubusercontent.com/cjmellor/lemp-stack/master/mysql_pubkey.asc
-
-# Add the key
-# apt-key add mysql_pubkey.asc
-
 # Import MySQL public key
-gpg --keyserver hkp://keys.gnupg.net --recv-keys 5072E1F5
+apt-key adv --recv-keys --keyserver hkp://keys.gnupg.net 8C718D3B5072E1F5
 
 # Add the MySQL repository
 touch /etc/apt/sources.list.d/mysql.list
@@ -25,8 +16,8 @@ apt-get update
 # Install MySQL without interaction
 export DEBIAN_FRONTEND=noninteractive
 
-echo "mysql-server mysql-server/root_password password root" | debconf-set-selections
-echo "mysql-server mysql-server/root_password_again password root" | debconf-set-selections
+echo "mysql-server mysql-server/root_password password *" | debconf-set-selections
+echo "mysql-server mysql-server/root_password_again password *" | debconf-set-selections
 
 apt-get install -y mysql-server
 
