@@ -18,7 +18,7 @@ mkdir -p /usr/local/src/php7-build/php7
 if [ -d "/usr/local/src/php7-build/php7/php-src" ]
 then
     cd /usr/local/src/php7-build/php7/php-src
-    git checkout PHP-7.0.1
+    git checkout PHP-7.0.2
     git pull
 else
     git clone https://github.com/php/php-src.git
