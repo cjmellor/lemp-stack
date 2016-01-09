@@ -1,0 +1,3 @@
+[submodule "nginx-config"]
+	path = nginx-config
+	url = git@github.com:cjmellor/nginx-config.git
