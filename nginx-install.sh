@@ -55,7 +55,6 @@ while getopts ":bs:h" opt; do
             ;;
         :)
             error "-$OPTARG requires an argument" 'error'
-            exit 2
             ;;
 
         *|h)
