@@ -2,6 +2,27 @@
 
 branch=stable
 
+# Customer error message
+error() {
+    reset=$(tput sgr0)
+
+    # Set colours
+    if [ $2 == 'warn' ]; then
+        msg=`tput setaf 1`WARNING${reset}
+    elif [ $2 == 'info' ]; then
+        msg=`tput setaf 2`INFO${reset}
+    elif [ $2 == 'error' ]; then
+        msg=`tput setaf 3`ERROR${reset}
+    fi
+
+    echo -e "
+        ${msg}:
+        =========================${reset}
+        $1
+    "
+    exit 1
+}
+
 # Custom options/arguments
 usage() {
     echo "
@@ -18,11 +39,10 @@ usage() {
 
             -s      Choose a website name using the pattern 'example.com'
     "
-    1>&2;
-    exit 1;
+    exit 1
 }
 
-while getopts "bs:" opt; do
+while getopts ":bs:h" opt; do
     case $opt in
         b)
             branch=development
@@ -30,7 +50,15 @@ while getopts "bs:" opt; do
         s)
             site=${OPTARG}
             ;;
-        *)
+        \?)
+            error "-$OPTARG is not a valid option. Use '-h' for more options" 'warn'
+            ;;
+        :)
+            error "-$OPTARG requires an argument" 'error'
+            exit 2
+            ;;
+
+        *|h)
             usage
             ;;
     esac
@@ -38,12 +66,8 @@ done
 
 shift $((OPTIND-1))
 
-if [ -z "${s}" ]; then
-    echo "
-        No website name provided:
-            Format: <example.com>
-    "
-    exit 1;
+if [ -z "${site}" ]; then
+    error "No website name provided\n\tMissing: -s <example.com>" 'warn'
 fi
 
 # Add NGINX key
@@ -62,19 +86,22 @@ apt-get update
 apt-get install -y nginx
 
 # Add the HTML5 Boilerplate NGINX Configuration
-cd /tmp
-wget https://github.com/cjmellor/nginx-config/archive/master.zip
-unzip master.zip
-cp -r nginx-config-master/{extra,mime.types,nginx.conf} /etc/nginx/
-cp -r nginx-config-master/sites-available/example.com /etc/nginx/sites-available/
-rm -rf {master.zip,nginx-config-master}
+# cd /tmp
+# wget https://github.com/cjmellor/nginx-config/archive/master.zip
+# unzip master.zip
+# cp -r nginx-config-master/{extra,mime.types,nginx.conf} /etc/nginx/
+cp -r nginx-config/{extra,mime.types,nginx.conf} /etc/nginx/
+# cp -r nginx-config-master/sites-available/example.com /etc/nginx/sites-available/
+cp -r nginx-config/sites-available/example.com /etc/nginx/sites-available/
+# rm -rf {master.zip,nginx-config-master}
 
 service nginx reload
 
 # Remove the default sites and add new sites
 cd /etc/nginx/sites-available
 rm default
-# mv example.com <site-name.com>
+mv example.com ${site}
+mkdir -p /var/www/${site}/html
 
 ########## CONFIGURATION ##########
 # Make edit changes to configuration files.
@@ -84,4 +111,5 @@ rm default
 cd /etc/nginx
 
 # Change the user to run NGINX
-sed -i "s/user chris;/user $(whoami);/g" nginx.conf
+sed -i "s/user nginx;/user $(whoami);/" nginx.conf
+sed -i "s/example.com/${site}/g" sites-available/${site}
