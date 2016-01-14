@@ -1,6 +1,7 @@
 #!/bin/bash
 
 branch=stable
+secure=example.com
 
 # Customer error message
 error() {
@@ -42,13 +43,16 @@ usage() {
     exit 1
 }
 
-while getopts ":bs:h" opt; do
+while getopts ":bs:ht" opt; do
     case $opt in
         b)
             branch=development
             ;;
         s)
             site=${OPTARG}
+            ;;
+        t)
+            secure=ssl.example.com
             ;;
         \?)
             error "-$OPTARG is not a valid option. Use '-h' for more options" 'warn'
@@ -84,22 +88,15 @@ EOF
 apt-get update
 apt-get install -y nginx
 
-# Add the HTML5 Boilerplate NGINX Configuration
-# cd /tmp
-# wget https://github.com/cjmellor/nginx-config/archive/master.zip
-# unzip master.zip
-# cp -r nginx-config-master/{extra,mime.types,nginx.conf} /etc/nginx/
 cp -r nginx-config/{extra,mime.types,nginx.conf} /etc/nginx/
-# cp -r nginx-config-master/sites-available/example.com /etc/nginx/sites-available/
-cp -r nginx-config/sites-available/example.com /etc/nginx/sites-available/
-# rm -rf {master.zip,nginx-config-master}
+cp -r nginx-config/sites-available/${secure} /etc/nginx/sites-available/
 
 service nginx reload
 
 # Remove the default sites and add new sites
 cd /etc/nginx/sites-available
 rm default
-mv example.com ${site}
+mv ${secure} ${site}
 mkdir -p /var/www/${site}/html
 
 ########## CONFIGURATION ##########
@@ -111,4 +108,4 @@ cd /etc/nginx
 
 # Change the user to run NGINX
 sed -i "s/user nginx;/user $(whoami);/" nginx.conf
-sed -i "s/example.com/${site}/g" sites-available/${site}
+sed -i "s/${secure}/${site}/g" sites-available/${site}
