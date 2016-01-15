@@ -5,7 +5,7 @@ apt-key adv --recv-keys --keyserver hkp://keys.gnupg.net 8C718D3B5072E1F5
 
 # Add the MySQL repository
 touch /etc/apt/sources.list.d/mysql.list
-chown $(whoami): /etc/apt/sources.list.d/mysql.list
+chown "$(whoami)": /etc/apt/sources.list.d/mysql.list
 
 cat << EOF > /etc/apt/sources.list.d/mysql.list
 deb http://repo.mysql.com/apt/ubuntu/ trusty mysql-5.7

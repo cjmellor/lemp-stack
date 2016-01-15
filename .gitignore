@@ -3,3 +3,4 @@
 /.git
 /.vagrant
 Vagrantfile
+/php-src

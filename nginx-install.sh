@@ -8,12 +8,12 @@ error() {
     reset=$(tput sgr0)
 
     # Set colours
-    if [ $2 == 'warn' ]; then
-        msg=`tput setaf 1`WARNING${reset}
-    elif [ $2 == 'info' ]; then
-        msg=`tput setaf 2`INFO${reset}
-    elif [ $2 == 'error' ]; then
-        msg=`tput setaf 3`ERROR${reset}
+    if [ "$2" == 'warn' ]; then
+        msg=$(tput setaf 1)WARNING${reset}
+    elif [ "$2" == 'info' ]; then
+        msg=$(tput setaf 2)INFO${reset}
+    elif [ "$2" == 'error' ]; then
+        msg=$(tput setaf 3)ERROR${reset}
     fi
 
     echo -e "
@@ -40,7 +40,7 @@ usage() {
 
             -s      Choose a website name using the pattern 'example.com'
     "
-    exit 1
+    exit 0
 }
 
 while getopts ":bs:ht" opt; do
@@ -78,7 +78,7 @@ apt-key adv --keyserver keyserver.ubuntu.com --recv-keys C300EE8C
 
 # Add the NGINX repository
 touch /etc/apt/sources.list.d/nginx-$branch-trusty.list
-chown $(whoami): /etc/apt/sources.list.d/nginx-$branch-trusty.list
+chown "$(whoami)": /etc/apt/sources.list.d/nginx-$branch-trusty.list
 
 cat << EOF > /etc/apt/sources.list.d/nginx-$branch-trusty.list
 deb http://ppa.launchpad.net/nginx/$branch/ubuntu trusty main
@@ -94,18 +94,16 @@ cp -r nginx-config/sites-available/${secure} /etc/nginx/sites-available/
 service nginx reload
 
 # Remove the default sites and add new sites
-cd /etc/nginx/sites-available
+cd /etc/nginx/sites-available || exit 1
 rm default
-mv ${secure} ${site}
-mkdir -p /var/www/${site}/html
+mv ${secure} "${site}"
+mkdir -p /var/www/"${site}"/html
 
 ########## CONFIGURATION ##########
-# Make edit changes to configuration files.
-###################################
 
 # First need to get to the config file
-cd /etc/nginx
+cd /etc/nginx || exit 1
 
 # Change the user to run NGINX
 sed -i "s/user nginx;/user $(whoami);/" nginx.conf
-sed -i "s/${secure}/${site}/g" sites-available/${site}
+sed -i "s/${secure}/${site}/g" sites-available/"${site}"
