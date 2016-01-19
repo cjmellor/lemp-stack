@@ -102,12 +102,14 @@ apt-get install -y nginx
 cp -r nginx-config/{extra,mime.types,nginx.conf} /etc/nginx/
 cp -r nginx-config/sites-available/${secure} /etc/nginx/sites-available/
 touch /var/log/nginx/static.log
+chown "$(whoami)": /var/log/nginx/{error.log,access.log,static.log}
 
 # Remove the default sites and add new sites
 rm /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 mv /etc/nginx/sites-available/${secure} /etc/nginx/sites-available/"${site}"
 nginx_ensite "${site}"
 mkdir -p /var/www/"${site}"/html
+chown -R "$(whoami)": /var/www
 
 ########## CONFIGURATION ##########
 
