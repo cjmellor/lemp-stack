@@ -81,8 +81,8 @@ fi
 git clone https://github.com/perusio/nginx_ensite.git
 cd nginx_ensite || exit 1
 make install
-rm -rf nginx_ensite
 cd ../ || exit 1
+rm -rf nginx_ensite
 
 # Add NGINX key
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys C300EE8C

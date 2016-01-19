@@ -124,6 +124,7 @@ CONFIGURE_STRING="
                 --with-mysqli \
                 --with-pdo-mysql \
                 --with-openssl \
+                --with-pear \
                 --with-pspell \
                 --with-readline \
                 --with-zlib \
@@ -187,8 +188,7 @@ sed -i "s#;slowlog = log/\$pool.log.slow#slowlog = /var/log/php/\$pool.log.slow#
 sed -i "s#;request_slowlog_timeout = 0#request_slowlog_timeout = 5s#" /etc/php/php7/etc/php-fpm.d/${site}.conf
 
 # Use an external script to fix the php.ini and make it more secure
-cd /etc/php/php7/lib || exit 1
-git clone https://github.com/perusio/php-ini-cleanup.git
+git clone https://github.com/perusio/php-ini-cleanup.git /etc/php/php7/lib/php-ini-cleanup
 cp -ap /etc/php/php7/lib/php.ini{,.bak} # Backup just in case
 /etc/php/php7/lib/php-ini-cleanup/php_cleanup -${env} /etc/php/php7/lib/php.ini
 
