@@ -1,5 +1,7 @@
 #!/bin/bash
 
+rm -rf nginx_ensite # DEBUGGING ONLY!
+
 branch=stable
 secure=example.com
 
@@ -32,13 +34,15 @@ usage() {
         $0 -- Installs and configures NGINX in almost one command
 
         USAGE:
-            $0 [-bs][-b branch_version][-s site_name]
+            $0 [-bst][-b branch_version][-s site_name][-t secure]
 
         OPTIONS:
 
-            -b      Choose which branch to use - stable|development
+            -b      (Optional)This option selects the 'development' build. Default: stable
 
             -s      Choose a website name using the pattern 'example.com'
+
+            -t      (Optional) Choose if to use this for SSL sites. Default: Non-SSL
     "
     exit 0
 }
@@ -73,6 +77,13 @@ if [ -z "${site}" ]; then
     error "No website name provided\n\tMissing: -s <example.com>" 'warn'
 fi
 
+# Download the NGINX vhost enabler
+git clone https://github.com/perusio/nginx_ensite.git
+cd nginx_ensite || exit 1
+make install
+rm -rf nginx_ensite
+cd ../ || exit 1
+
 # Add NGINX key
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys C300EE8C
 
@@ -90,20 +101,20 @@ apt-get install -y nginx
 
 cp -r nginx-config/{extra,mime.types,nginx.conf} /etc/nginx/
 cp -r nginx-config/sites-available/${secure} /etc/nginx/sites-available/
-
-service nginx reload
+touch /var/log/nginx/static.log
 
 # Remove the default sites and add new sites
-cd /etc/nginx/sites-available || exit 1
-rm default
-mv ${secure} "${site}"
+rm /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+mv /etc/nginx/sites-available/${secure} /etc/nginx/sites-available/"${site}"
+nginx_ensite "${site}"
 mkdir -p /var/www/"${site}"/html
 
 ########## CONFIGURATION ##########
 
-# First need to get to the config file
-cd /etc/nginx || exit 1
-
 # Change the user to run NGINX
-sed -i "s/user nginx;/user $(whoami);/" nginx.conf
-sed -i "s/${secure}/${site}/g" sites-available/"${site}"
+sed -i "s#user www-data;#user $(whoami);#" /etc/nginx/nginx.conf
+sed -i "s#${secure}#${site}#g" /etc/nginx/sites-available/"${site}"
+sed -i "s#worker_processes auto;#worker_processes $(cat /proc/cpuinfo | grep -c processor);#" /etc/nginx/nginx.conf
+sed -i "s#worker_connections 8000;#worker_connections 1024;#" /etc/nginx/nginx.conf
+
+service nginx restart

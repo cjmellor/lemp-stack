@@ -1,5 +1,7 @@
 #!/bin/bash
 
+env=p
+
 # Customer error message
 error() {
     reset=$(tput sgr0)
@@ -29,19 +31,24 @@ usage() {
         $0 -- Installs and configures PHP 7 in almost one command
 
         USAGE:
-            $0 [-s][-s site_name]
+            $0 [-sd][-s site_name][-d env]
 
         OPTIONS:
 
             -s      Choose a website name using the pattern 'example.com'
+
+            -d      (Optional) This will install for development use. Default: production
     "
     exit 0
 }
 
-while getopts ":s:h" opt; do
+while getopts ":s:dh" opt; do
     case $opt in
         s)
             site=$(echo "${OPTARG}" | sed -E "s#([a-zA-Z0-9]+).([a-zA-Z0-9]+)#\1-\2#")
+            ;;
+        d)
+            env=d
             ;;
         \?)
             error "-$OPTARG is not a valid option. Use '-h' for more options" 'warn'
@@ -157,17 +164,33 @@ update-rc.d php7-fpm defaults
 
 # Create the logs
 mkdir -p /var/log/php
-touch /var/log/php/php-fpm.log
+touch /var/log/php/{php-fpm.log,${site}.log.slow}
 
 # Amend some config settings
 sed -i "s#;error_log = log/php-fpm.log#error_log = /var/log/php/php-fpm.log#" /etc/php/php7/etc/php-fpm.conf
 sed -i "s#;emergency_restart_threshold = 0#emergency_restart_threshold = 10#" /etc/php/php7/etc/php-fpm.conf
 sed -i "s#;emergency_restart_interval = 0#emergency_restart_interval = 1m" /etc/php/php7/etc/php-fpm.conf
-sed -i "s#;process_control_timeout = 0#process_control_timeout = 10s#" /etc/php/php7/etc/php-fpm.conf
+sed -i "s#;process_control_timeout = 0#process_control_timeout = 5#" /etc/php/php7/etc/php-fpm.conf
+sed -i "s#;daemonize = yes#daemonize = yes#" /etc/php/php7/etc/php-fpm.conf
 # Amend the PHP-FPM config
-sed -i "s#[www]#[${site}]#" /etc/php/php7/etc/php-fpm.d/${site}
-sed -i "s#listen = 127.0.0.1:9000#listen = /var/run/php-fpm.sock#" /etc/php/php7/etc/php-fpm.d/${site}
-sed -i "s#pm = dynamic#pm = ondemand#" /etc/php/php7/etc/php-fpm.d/${site}
+sed -i "s#[www]#[${site}]#" /etc/php/php7/etc/php-fpm.d/${site}.conf
+sed -i "s#listen = 127.0.0.1:9000#listen = /var/run/php-fpm.sock#" /etc/php/php7/etc/php-fpm.d/${site}.conf
+sed -i "s#pm.max_children = 5#pm.max_children = 6#" /etc/php/php7/etc/php-fpm.d/${site}.conf
+sed -i "s#pm.start_servers = 2#pm.start_servers = 3#" /etc/php/php7/etc/php-fpm.d/${site}.conf
+sed -i "s#pm.min_spare_servers = 1#pm.min_spare_servers = 3#" /etc/php/php7/etc/php-fpm.d/${site}.conf
+sed -i "s#pm.max_spare_servers = 3#pm.max_spare_servers = 5#" /etc/php/php7/etc/php-fpm.d/${site}.conf
+sed -i "s#;pm.status_path = /status#pm.status_path = /fpm-status-zwei#" /etc/php/php7/etc/php-fpm.d/${site}.conf
+sed -i "s#;ping.path = /ping#ping.path = /ping-zwei#" /etc/php/php7/etc/php-fpm.d/${site}.conf
+sed -i "s#;request_terminate_timeout = 0#request_terminate_timeout = 120s#" /etc/php/php7/etc/php-fpm.d/${site}.conf
+sed -i "s#;rlimit_files = 1024#rlimit_files = 4096#" /etc/php/php7/etc/php-fpm.d/${site}.conf
+sed -i "s#;slowlog = log/\$pool.log.slow#slowlog = /var/log/php/\$pool.log.slow#" /etc/php/php7/etc/php-fpm.d/${site}.conf
+sed -i "s#;request_slowlog_timeout = 0#request_slowlog_timeout = 5s#" /etc/php/php7/etc/php-fpm.d/${site}.conf
+
+# Use an external script to fix the php.ini and make it more secure
+cd /etc/php/php7/lib || exit 1
+git clone https://github.com/perusio/php-ini-cleanup.git
+cp -ap /etc/php/php7/lib/php.ini{,.bak} # Backup just in case
+/etc/php/php7/lib/php-ini-cleanup/php_cleanup -${env} /etc/php/php7/lib/php.ini
 
 # Enable OPCACHE
 echo "zend_extension=opcache.so" >> /etc/php/php7/lib/php.ini
