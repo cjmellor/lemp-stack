@@ -1,7 +1,6 @@
 #!/bin/bash
 
 env=p # Production
-version=7.0.0 # Default version to install - it's stable enough
 
 # Customer error message
 error() {
@@ -45,16 +44,16 @@ usage() {
     exit 0
 }
 
-while getopts ":s:dvh" opt; do
+while getopts ":s:vdh" opt; do
     case $opt in
         s)
-            site=$(echo "${OPTARG}" | sed -E "s#([a-zA-Z0-9]+).([a-zA-Z0-9]+)#\1-\2#")
+            site=$(echo $OPTARG | sed -E "s#([a-zA-Z0-9-]+).([a-zA-Z0-9]+)#\1-\2#")
             ;;
         d)
             env=d
             ;;
         v)
-            version="${OPTARG}"
+            version=$OPTARG
             ;;
         \?)
             error "-$OPTARG is not a valid option. Use '-h' for more options" 'warn'
@@ -75,7 +74,9 @@ if [ -z "${site}" ]; then
     error "No website name provided\n\tMissing: -s <example.com>" 'warn'
 fi
 
-[[ $version < "7.0.0" ]] && php=php5 || php=php7
+[[ -z "${version}" ]] && version=7.0.0
+
+[[ "$version" < "7.0.0" ]] && php=php5 || php=php7
 
 # Dependencies
 apt-get update -y
@@ -107,12 +108,10 @@ if [ -d "/usr/local/src/${php}-build/${php}/php-src" ]
 then
     cd /usr/local/src/${php}-build/${php}/php-src || exit 1
     git checkout PHP-${version}
-    git pull
 else
     git clone https://github.com/php/php-src.git
     cd /usr/local/src/${php}-build/${php}/php-src || exit 1
-    git checkout PHP-7.0.2
-    git pull
+    git checkout PHP-${version}
 fi
 
 mkdir -p /etc/php/${php}/conf.d
@@ -124,8 +123,8 @@ CONFIGURE_STRING="
                 --prefix=/etc/php/${php} \
                 --with-bz2 \
                 --with-curl \
-                --with-fpm-group=$(whoami) \
-                --with-fpm-user=$(whoami) \
+                --with-fpm-group=vagrant \
+                --with-fpm-user=vagrant \
                 --with-gettext \
                 --with-gd \
                 --with-iconv \
@@ -134,7 +133,7 @@ CONFIGURE_STRING="
                 --with-mysqli \
                 --with-pdo-mysql \
                 --with-openssl \
-                --with-pear \
+                --with-pear=/etc/php/${php}/lib \
                 --with-pspell \
                 --with-readline \
                 --with-zlib \
@@ -175,7 +174,7 @@ update-rc.d ${php}-fpm defaults
 
 # Create the logs
 mkdir -p /var/log/php
-touch /var/log/php/{php-fpm.log,${site}.log.slow}
+touch /var/log/php/{${php}-fpm.log,${site}.log.slow}
 
 # Amend some config settings
 sed -i "s#;error_log = log/php-fpm.log#error_log = /var/log/php/${php}-fpm.log#" /etc/php/${php}/etc/php-fpm.conf
@@ -185,8 +184,10 @@ sed -i "s#;process_control_timeout = 0#process_control_timeout = 5#" /etc/php/${
 sed -i "s#;daemonize = yes#daemonize = yes#" /etc/php/${php}/etc/php-fpm.conf
 # Amend the PHP-FPM config
 sed -i "s#\[www\]#[${site}]#" /etc/php/${php}/etc/php-fpm.d/${site}.conf
-sed -i "s#;listen.owner = vagrant#listen.owner = $(whoami)#" /etc/php/${php}/etc/php-fpm.d/${site}.conf
-sed -i "s#;listen.group = vagrant#listen.group = $(whoami)#" /etc/php/${php}/etc/php-fpm.d/${site}.conf
+sed -i "s#;user = root#user = vagrant#" /etc/php/${php}/etc/php-fpm.d/${site}.conf
+sed -i "s#;group = root#group = vagrant#" /etc/php/${php}/etc/php-fpm.d/${site}.conf
+sed -i "s#;listen.owner = vagrant#listen.owner = vagrant#" /etc/php/${php}/etc/php-fpm.d/${site}.conf
+sed -i "s#;listen.group = vagrant#listen.group = vagrant#" /etc/php/${php}/etc/php-fpm.d/${site}.conf
 sed -i "s#listen = 127.0.0.1:9000#listen = /var/run/${php}-fpm.sock#" /etc/php/${php}/etc/php-fpm.d/${site}.conf
 sed -i "s#pm.max_children = 5#pm.max_children = 6#" /etc/php/${php}/etc/php-fpm.d/${site}.conf
 sed -i "s#pm.start_servers = 2#pm.start_servers = 3#" /etc/php/${php}/etc/php-fpm.d/${site}.conf
@@ -211,7 +212,7 @@ echo "zend_extension=opcache.so" >> /etc/php/${php}/lib/php.ini
 
 HOME=$(cd ~ || exit 1; pwd)
 PATH=$PATH:/etc/php/${php}/bin
-echo 'export PATH="$PATH:/etc/php/${php}/bin"' >> $HOME/.bashrc
+echo 'export PATH="$PATH:/etc/php/'${php}'/bin"' >> $HOME/.bashrc
 source $HOME/.bashrc
 
 service ${php}-fpm start

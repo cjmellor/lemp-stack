@@ -89,7 +89,7 @@ apt-key adv --keyserver keyserver.ubuntu.com --recv-keys C300EE8C
 
 # Add the NGINX repository
 touch /etc/apt/sources.list.d/nginx-$branch-trusty.list
-chown "$(whoami)": /etc/apt/sources.list.d/nginx-$branch-trusty.list
+chown vagrant: /etc/apt/sources.list.d/nginx-$branch-trusty.list
 
 cat << EOF > /etc/apt/sources.list.d/nginx-$branch-trusty.list
 deb http://ppa.launchpad.net/nginx/$branch/ubuntu trusty main
@@ -102,19 +102,19 @@ apt-get install -y nginx
 cp -r nginx-config/{extra,mime.types,nginx.conf} /etc/nginx/
 cp -r nginx-config/sites-available/${secure} /etc/nginx/sites-available/
 touch /var/log/nginx/static.log
-chown "$(whoami)": /var/log/nginx/{error.log,access.log,static.log}
+chown vagrant: /var/log/nginx/{error.log,access.log,static.log}
 
 # Remove the default sites and add new sites
 rm /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 mv /etc/nginx/sites-available/${secure} /etc/nginx/sites-available/"${site}"
 nginx_ensite "${site}"
 mkdir -p /var/www/"${site}"/html
-chown -R "$(whoami)": /var/www
+chown -R vagrant: /var/www
 
 ########## CONFIGURATION ##########
 
 # Change the user to run NGINX
-sed -i "s#user www-data;#user $(whoami);#" /etc/nginx/nginx.conf
+sed -i "s#user www-data;#user vagrant;#" /etc/nginx/nginx.conf
 sed -i "s#${secure}#${site}#g" /etc/nginx/sites-available/"${site}"
 sed -i "s#worker_processes auto;#worker_processes $(cat /proc/cpuinfo | grep -c processor);#" /etc/nginx/nginx.conf
 sed -i "s#worker_connections 8000;#worker_connections 1024;#" /etc/nginx/nginx.conf
