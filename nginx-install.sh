@@ -5,26 +5,8 @@ rm -rf nginx_ensite # DEBUGGING ONLY!
 branch=stable
 secure=example.com
 
-# Customer error message
-error() {
-    reset=$(tput sgr0)
-
-    # Set colours
-    if [ "$2" == 'warn' ]; then
-        msg=$(tput setaf 1)WARNING${reset}
-    elif [ "$2" == 'info' ]; then
-        msg=$(tput setaf 2)INFO${reset}
-    elif [ "$2" == 'error' ]; then
-        msg=$(tput setaf 3)ERROR${reset}
-    fi
-
-    echo -e "
-        ${msg}:
-        =========================${reset}
-        $1
-    "
-    exit 1
-}
+# Include functions
+. functions.cfg
 
 # Custom options/arguments
 usage() {

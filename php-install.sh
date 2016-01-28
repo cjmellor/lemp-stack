@@ -2,28 +2,9 @@
 
 env=p # Production
 
-# Customer error message
-error() {
-    reset=$(tput sgr0)
+# Include functions
+. functions.cfg
 
-    # Set colours
-    if [ "$2" == 'warn' ]; then
-        msg=$(tput setaf 1)WARNING${reset}
-    elif [ "$2" == 'info' ]; then
-        msg=$(tput setaf 2)INFO${reset}
-    elif [ "$2" == 'error' ]; then
-        msg=$(tput setaf 3)ERROR${reset}
-    fi
-
-    echo -e "
-        ${msg}:
-        =========================${reset}
-        $1
-    "
-    exit 1
-}
-
-# Custom options/arguments
 usage() {
     echo "
         PHP Installation script
@@ -31,6 +12,7 @@ usage() {
         $0 -- Installs and configures 1 or multipe versions of PHP
 
         USAGE:
+
             $0 [-sdv][-s site_name][-d env][-v version]
 
         OPTIONS:
@@ -200,7 +182,7 @@ sed -i "s#;rlimit_files = 1024#rlimit_files = 4096#" /etc/php/${php}/etc/php-fpm
 sed -i "s#;slowlog = log/\$pool.log.slow#slowlog = /var/log/php/\$pool.log.slow#" /etc/php/${php}/etc/php-fpm.d/${site}.conf
 sed -i "s#;request_slowlog_timeout = 0#request_slowlog_timeout = 5s#" /etc/php/${php}/etc/php-fpm.d/${site}.conf
 # Need to change the sock path in an NGINX config - outside of this script
-sed -i "s#fastcgi_pass unix:/var/run/php-fpm.sock;#fastcgi_pass unix:/var/run/${php}-fpm.sock;#" /etc/nginx/sites-available/"${site}"
+sed -i "s#[ \t]fastcgi_pass unix:/var/run/php-fpm.sock;#[ \t]fastcgi_pass unix:/var/run/${php}-fpm.sock;#" /etc/nginx/sites-available/${site}
 
 # Use an external script to fix the php.ini and make it more secure
 git clone https://github.com/perusio/php-ini-cleanup.git /etc/php/${php}/lib/php-ini-cleanup
@@ -212,7 +194,7 @@ echo "zend_extension=opcache.so" >> /etc/php/${php}/lib/php.ini
 
 HOME=$(cd ~ || exit 1; pwd)
 PATH=$PATH:/etc/php/${php}/bin
-echo 'export PATH="$PATH:/etc/php/'${php}'/bin"' >> $HOME/.bashrc
-source $HOME/.bashrc
+echo 'export PATH="$PATH:/etc/php/'${php}'/bin"' >> $HOME/.zshrc
+source $HOME/.zshrc
 
 service ${php}-fpm start
