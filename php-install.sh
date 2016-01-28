@@ -28,23 +28,23 @@ usage() {
 
 while getopts ":s:vdh" opt; do
     case $opt in
-        s)
+        s )
             site=$(echo $OPTARG | sed -E "s#([a-zA-Z0-9-]+).([a-zA-Z0-9]+)#\1-\2#")
             ;;
-        d)
+        d )
             env=d
             ;;
-        v)
+        v )
             version=$OPTARG
             ;;
-        \?)
+        \? )
             error "-$OPTARG is not a valid option. Use '-h' for more options" 'warn'
             ;;
-        :)
+        : )
             error "-$OPTARG requires an argument" 'error'
             ;;
 
-        *|h)
+        *|h )
             usage
             ;;
     esac
@@ -52,9 +52,8 @@ done
 
 shift $((OPTIND-1))
 
-if [ -z "${site}" ]; then
+[[ -z "${site}" ]] &&
     error "No website name provided\n\tMissing: -s <example.com>" 'warn'
-fi
 
 [[ -z "${version}" ]] && version=7.0.0
 

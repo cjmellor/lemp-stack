@@ -20,7 +20,7 @@ usage() {
 
         OPTIONS:
 
-            -b      (Optional)This option selects the 'development' build. Default: stable
+            -b      (Optional) This option selects the 'development' build. Default: stable
 
             -s      Choose a website name using the pattern 'example.com'
 
@@ -31,23 +31,23 @@ usage() {
 
 while getopts ":bs:ht" opt; do
     case $opt in
-        b)
+        b )
             branch=development
             ;;
-        s)
+        s )
             site=${OPTARG}
             ;;
-        t)
+        t )
             secure=ssl.example.com
             ;;
-        \?)
+        \? )
             error "-$OPTARG is not a valid option. Use '-h' for more options" 'warn'
             ;;
-        :)
+        : )
             error "-$OPTARG requires an argument" 'error'
             ;;
 
-        *|h)
+        *|h )
             usage
             ;;
     esac
@@ -55,9 +55,8 @@ done
 
 shift $((OPTIND-1))
 
-if [ -z "${site}" ]; then
+[[ -z "${site}" ]] &&
     error "No website name provided\n\tMissing: -s <example.com>" 'warn'
-fi
 
 # Download the NGINX vhost enabler
 git clone https://github.com/perusio/nginx_ensite.git

@@ -20,13 +20,16 @@ usage() {
 
 while getopts ":m:h" opt; do
     case $opt in
-        m)
-            version="${OPTARG}"
+        m )
+            mysql_version=${OPTARG} >&2
             ;;
-        \?)
-            error "-$OPTARG is not a valid option. Use '-h' for more options" 'warn'
+        \? )
+            error "-$OPTARG is not a valid option. Use '-h' for more options" 'warn' >&2
             ;;
-        *|h)
+        : )
+            error "-$OPTARG requires an argument" 'error'
+            ;;
+        *|h )
             usage
             ;;
     esac
@@ -34,9 +37,9 @@ done
 
 shift $((OPTIND-1))
 
-[[ -z ${version} ]] && version=5.7
+[[ -z ${mysql_version} ]] && mysql_version=5.7
 
-[[ "${version}" < 5.5 || "${version}" > 5.7 ]] &&
+[[ "${mysql_version}" < 5.5 || "${mysql_version}" > 5.7 ]] &&
     error "Valid MySQL versions: 5.5 - 5.6 - 5.7" 'error'
 
 # Import MySQL public key
@@ -47,7 +50,7 @@ touch /etc/apt/sources.list.d/mysql.list
 chown "$(whoami)": /etc/apt/sources.list.d/mysql.list
 
 cat << EOF > /etc/apt/sources.list.d/mysql.list
-deb http://repo.mysql.com/apt/ubuntu/ trusty mysql-${version}
+deb http://repo.mysql.com/apt/ubuntu/ trusty mysql-${mysql_version}
 EOF
 
 apt-get update
