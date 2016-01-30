@@ -21,10 +21,10 @@ usage() {
 while getopts ":m:h" opt; do
     case $opt in
         m )
-            mysql_version=${OPTARG} >&2
+            mysql_version=${OPTARG}
             ;;
         \? )
-            error "-$OPTARG is not a valid option. Use '-h' for more options" 'warn' >&2
+            error "-$OPTARG is not a valid option. Use '-h' for more options" 'warn'
             ;;
         : )
             error "-$OPTARG requires an argument" 'error'
@@ -41,6 +41,8 @@ shift $((OPTIND-1))
 
 [[ "${mysql_version}" < 5.5 || "${mysql_version}" > 5.7 ]] &&
     error "Valid MySQL versions: 5.5 - 5.6 - 5.7" 'error'
+
+apt-key update
 
 # Import MySQL public key
 apt-key adv --recv-keys --keyserver hkp://keys.gnupg.net 8C718D3B5072E1F5
@@ -69,5 +71,7 @@ mysql -u root <<-EOF
     DELETE FROM mysql.user WHERE User='';
     DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
     DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%';
+    CREATE USER 'vagrant'@'localhost' IDENTIFIED BY 'test1234';
+    GRANT ALL PRIVILEGES ON *.* TO 'vagrant'@'localhost';
     FLUSH PRIVILEGES;
 EOF

@@ -89,8 +89,14 @@ chown vagrant: /var/log/nginx/{error.log,access.log,static.log}
 rm /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 mv /etc/nginx/sites-available/${secure} /etc/nginx/sites-available/"${site}"
 nginx_ensite "${site}"
-mkdir -p /var/www/"${site}"/html
 chown -R vagrant: /var/www
+mkdir -p /var/www/"${site}"/html
+
+# Create a PHP Info to show it's working
+cat << EOF > /var/www/${site}/html/index.php
+<?php
+phpinfo();
+EOF
 
 ########## CONFIGURATION ##########
 

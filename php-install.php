@@ -26,7 +26,7 @@ usage() {
     exit 0
 }
 
-while getopts ":s:vdh" opt; do
+while getopts ":s:v:dh" opt; do
     case $opt in
         s )
             site=$(echo $OPTARG | sed -E "s#([a-z0-9-]+).([a-z0-9]+)#\1-\2#")
@@ -54,6 +54,9 @@ shift $((OPTIND-1))
 
 [[ -z "${site}" ]] &&
     error "No website name provided\n\tMissing: -s <example.com>" 'warn'
+
+[[ "${version}" < 5.5.31 || "${version}" > 7.0.2 ]] &&
+    error "Valid PHP versions: 5.5.31 - 5.6.17 - 7.0.2" 'error'
 
 [[ -z "${version}" ]] &&
     version=7.0.0
@@ -197,6 +200,6 @@ echo "zend_extension=opcache.so" >> /etc/php/${php}/lib/php.ini
 HOME=$(cd ~ || exit 1; pwd)
 PATH=$PATH:/etc/php/${php}/bin
 echo 'export PATH="$PATH:/etc/php/'${php}'/bin"' >> $HOME/.zshrc
-source $HOME/.zshrc
 
 service ${php}-fpm start
+service nginx restart
