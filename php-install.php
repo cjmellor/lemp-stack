@@ -21,7 +21,7 @@ usage() {
 
             -d      (Optional) This will install for development use. Default: production
 
-            -v      (Optional) Which version of PHP
+            -v      (Optional) Which version of PHP. Default: 7.0.0
     "
     exit 0
 }
@@ -29,7 +29,7 @@ usage() {
 while getopts ":s:vdh" opt; do
     case $opt in
         s )
-            site=$(echo $OPTARG | sed -E "s#([a-zA-Z0-9-]+).([a-zA-Z0-9]+)#\1-\2#")
+            site=$(echo $OPTARG | sed -E "s#([a-z0-9-]+).([a-z0-9]+)#\1-\2#")
             ;;
         d )
             env=d
@@ -55,9 +55,11 @@ shift $((OPTIND-1))
 [[ -z "${site}" ]] &&
     error "No website name provided\n\tMissing: -s <example.com>" 'warn'
 
-[[ -z "${version}" ]] && version=7.0.0
+[[ -z "${version}" ]] &&
+    version=7.0.0
 
-[[ "$version" < "7.0.0" ]] && php=php5 || php=php7
+[[ "$version" < "7.0.0" ]] &&
+    php=php5 || php=php7
 
 # Dependencies
 apt-get update -y
@@ -181,7 +183,8 @@ sed -i "s#;rlimit_files = 1024#rlimit_files = 4096#" /etc/php/${php}/etc/php-fpm
 sed -i "s#;slowlog = log/\$pool.log.slow#slowlog = /var/log/php/\$pool.log.slow#" /etc/php/${php}/etc/php-fpm.d/${site}.conf
 sed -i "s#;request_slowlog_timeout = 0#request_slowlog_timeout = 5s#" /etc/php/${php}/etc/php-fpm.d/${site}.conf
 # Need to change the sock path in an NGINX config - outside of this script
-sed -i "s#[ \t]fastcgi_pass unix:/var/run/php-fpm.sock;#[ \t]fastcgi_pass unix:/var/run/${php}-fpm.sock;#" /etc/nginx/sites-available/${site}
+site=$(echo ${site} | sed -E "s#([a-z0-9-]+)-([a-z0-9]+)#\1.\2#")
+sed -i "s#fastcgi_pass unix:/var/run/php-fpm.sock;#fastcgi_pass unix:/var/run/${php}-fpm.sock;#" /etc/nginx/sites-available/${site}
 
 # Use an external script to fix the php.ini and make it more secure
 git clone https://github.com/perusio/php-ini-cleanup.git /etc/php/${php}/lib/php-ini-cleanup
