@@ -1,3 +1,6 @@
 [submodule "nginx-config"]
 	path = nginx-config
 	url = git@github.com:cjmellor/nginx-config.git
+[submodule "mysql-config"]
+	path = mysql-config
+	url = https://github.com/cjmellor/mysql-config.git
